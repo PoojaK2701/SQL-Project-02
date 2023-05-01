@@ -1,0 +1,45 @@
+Based on the 3 datasets provided with names Data Sheet 1, Data Sheet 2, and Data Sheet 3 analyze the rate of payment failures and suggest actionable insights on how we can improve and reduce this to industry standard
+Please document your findings in a word document and visualize your insights in charts
+
+Solution - 
+STEP 1 - Imported the above mentioned three datasets in Pg Admin 4 through GUI in PgAdmin 4 and created three tables with name table1, table2, and table 3
+To analyze the rate of payment failures, we can merge the transactional data with the payment gateway and payment failure data based on the unique transaction ID or invoice number. Then, we can calculate the percentage of failed payments and compare it to industry standards to identify areas of improvement
+
+STEP 2 - To merge the data from the three tables, you can use SQL queries to join the tables based on common columns
+(I put different data type for certain columns hence to fixed the same I used the following code)
+
+SELECT *
+FROM (
+  SELECT table1."Invoice Number", table1."Amount", table2."Status", table3."Id"
+  FROM table1
+  INNER JOIN table2 ON CAST(table1."Invoice Number" AS TEXT) = table2."Invoice Number"
+  INNER JOIN table3 ON table2."Invoice Number" = table3."Id"
+) AS t
+
+STEP 3 - To calculate the percentage of failed payments and compare it to industry standards, you can use the following SQL query
+
+SELECT CAST("Invoice Number" AS TEXT) AS "Invoice Number", "Amount", "Status"
+FROM table1
+UNION ALL
+SELECT "Invoice Number", "Amount", "Status"
+FROM table2
+UNION ALL
+SELECT "Invoice Number", "Amount", "Status"
+FROM table3;
+
+SELECT 
+  SUM(CASE WHEN Status = 'failed' OR Status = 'failure' OR Status = 'Failed' THEN 1 ELSE 0 END) AS failed_payments,
+  COUNT(*) AS total_payments,
+  (SUM(CASE WHEN Status = 'failed' OR Status = 'failure' OR Status = 'Failed' THEN 1 ELSE 0 END) * 100.0 / COUNT(*)) AS failure_rate
+FROM (
+  SELECT CAST("Invoice Number" AS TEXT) AS "Invoice Number", "Amount", "Status"
+  FROM table1
+  UNION ALL
+  SELECT "Invoice Number", "Amount", "Status"
+  FROM table2
+  UNION ALL
+  SELECT "Id", "Amount", "Status"
+  FROM table3
+) AS all_payments;
+
+RESULT - 17.457% is the payment failure rate
